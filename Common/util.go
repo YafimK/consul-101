@@ -6,8 +6,9 @@ import (
 	"log"
 )
 
-func RegisterServiceWithConsul(serviceId, serviceName string, hostname string, port int) error {
+func RegisterServiceWithConsul(serviceId, serviceName string, hostname string, port int, consulAddress string) error {
 	config := consulapi.DefaultConfig()
+	config.Address = consulAddress
 	consul, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatalln(err)
