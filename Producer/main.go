@@ -1,24 +1,23 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
-var consulDefaultAddress = "0.0.0.0:8500"
+var consulDefaultAddress = "consul:8500"
 var messageLimit = 50
-
 var msgCounter = 0
 
-func sendMessage(targetHostname string, payload []byte) {
-	message := fmt.Sprintf("Message %d\n", msgCounter)
+func sendMessage(targetHostname string, payload string) {
+	message := fmt.Sprintf("Message %d", msgCounter)
 	log.Printf("Sending message: %v\n", message)
-	resp, err := http.Post(fmt.Sprintf("http://%v:3000/api/v1/log", targetHostname), "text/plain", bytes.NewReader(payload))
+	resp, err := http.Post(fmt.Sprintf("http://%v:3000/api/v1/log", targetHostname), "text/plain", strings.NewReader(payload))
 	if err != nil {
 		log.Printf("http post err: %v", err)
 		return
@@ -36,7 +35,7 @@ func sendMessage(targetHostname string, payload []byte) {
 
 func main() {
 	log.Println("Starting producer ...")
-	serviceKey := "service/logger/leader"
+	serviceKey := "service/logger"
 
 	config := api.DefaultConfig()
 	config.Address = consulDefaultAddress
@@ -48,7 +47,7 @@ func main() {
 
 	timer := time.NewTicker(5 * time.Second)
 
-	for msgCounter := 0; msgCounter <= messageLimit; msgCounter++ {
+	for ; msgCounter <= messageLimit; msgCounter++ {
 		kv, _, err := client.KV().Get(serviceKey, nil)
 		if err != nil {
 			log.Fatalf("kv acquire err: %v", err)
@@ -57,8 +56,7 @@ func main() {
 		if kv != nil && kv.Session != "" {
 			// there is a leader
 			leaderHostname := string(kv.Value)
-			sendMessage(leaderHostname, []byte{byte(msgCounter)})
-			msgCounter++
+			sendMessage(leaderHostname, "hola")
 		}
 		<-timer.C
 	}

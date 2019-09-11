@@ -10,8 +10,19 @@ services:
     volumes:
       - ./config:/config
       - ./_data/consul:/data
-    command: agent -server -data-dir=/data -bind 0.0.0.0 -client 0.0.0.0 -bootstrap-expect=1
-
+    command: agent -server -data-dir=/data -bind 0.0.0.0 -client 0.0.0.0 -bootstrap-expect=1 --ui
+  logger:
+    build: ./Services/DistributedLogger/
+    depends_on:
+      - consul
+    restart: on-failure
+  producer:
+    build: ./Producer/
+    depends_on:
+      - logger
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
 #  vault:
 #    container_name: vault
 #    image: vault
