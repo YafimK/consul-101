@@ -16,13 +16,39 @@ services:
     depends_on:
       - consul
     restart: on-failure
+  message_queue_consumer:
+    build: Services/MessageQueueConsumer/
+    command: ["./MessageQueueManager","-amqp","amqp://guest:guest@rmq_server:5672/", "-host", "message_queue_consumer", "-port","3001"]
+    ports:
+      - 3001
+    depends_on:
+      - rmq_server
+    restart: on-failure
   producer:
     build: ./Producer/
     depends_on:
       - logger
-#    deploy:
-#      restart_policy:
-#        condition: on-failure
+  rmq_server:
+    image: rabbitmq
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq-server"
+    healthcheck:
+      timeout: 5s
+      interval: 5s
+      retries: 5
+      test:
+        - "CMD"
+        - "rabbitmqctl"
+        - "status"
+
 #  vault:
 #    container_name: vault
 #    image: vault
