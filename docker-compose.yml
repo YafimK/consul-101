@@ -29,12 +29,8 @@ services:
     depends_on:
       - logger
   rmq_server:
-    image: rabbitmq
-    environment:
-      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
-      RABBITMQ_DEFAULT_USER: "guest"
-      RABBITMQ_DEFAULT_PASS: "guest"
-      RABBITMQ_DEFAULT_VHOST: "/"
+#    image: rabbitmq
+    build: Services/RabbitMQDocker
     ports:
       - "15672:15672"
       - "5672:5672"
