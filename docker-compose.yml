@@ -6,12 +6,11 @@ services:
     image: consul:latest
     ports:
       - "8500:8500"
-      - "8600:8600"
+      - "8600:8600/udp"
       - "8300:8300"
     volumes:
       - ./config:/config
-      - ./_data/consul:/data
-    command: agent -server -data-dir=/data -bind=0.0.0.0 -client=0.0.0.0 -bootstrap -ui
+    command: agent -server -client=0.0.0.0 -bootstrap -ui -node=server-1
   logger:
     build: Services/DistributedLogger/
     depends_on:
@@ -54,7 +53,6 @@ services:
         - "CMD"
         - "rabbitmqctl"
         - "status"
-
 #  vault:
 #    container_name: vault
 #    image: vault
