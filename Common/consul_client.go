@@ -8,6 +8,7 @@ import (
 type ConsulClient interface {
 	Connect(consulAddress string) (*consulapi.Client, error)
 	RegisterService(serviceId, serviceName, hostname string, port int) error
+	GetRegisteredServices(service, tag string) ([]*consulapi.ServiceEntry, *consulapi.QueryMeta, error)
 }
 
 type client struct {

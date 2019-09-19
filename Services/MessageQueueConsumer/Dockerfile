@@ -11,8 +11,8 @@ WORKDIR $WORKDIR
 # Copying config
 COPY . $WORKDIR
 
-RUN go build -o MessageQueueManager .
+RUN go build -o MessageQueueConsumer .
 
 EXPOSE 8080
 
-CMD ["./MessageQueueManager"]
+CMD ["./MessageQueueConsumer"]

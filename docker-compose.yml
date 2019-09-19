@@ -18,7 +18,15 @@ services:
     restart: on-failure
   message_queue_consumer:
     build: Services/MessageQueueConsumer/
-    command: ["./MessageQueueManager","-amqp","amqp://guest:guest@rmq_server:5672/", "-host", "message_queue_consumer", "-port","3001"]
+    command: ["./MessageQueueConsumer","-amqp","amqp://guest:guest@rmq_server:5672/", "-host", "message_queue_consumer", "-port","3001"]
+    ports:
+      - 3001
+    depends_on:
+      - rmq_server
+    restart: on-failure
+  message_queue_producer:
+    build: Services/MessageQueueProducer/
+    command: ["./MessageQueueProducer","-amqp","amqp://guest:guest@rmq_server:5672/", "-host", "message_queue_producer", "-port","3001"]
     ports:
       - 3001
     depends_on:
