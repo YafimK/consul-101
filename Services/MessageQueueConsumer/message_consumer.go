@@ -30,49 +30,11 @@ func serviceApi(rabbitHostAddress string) {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
-	exchangeName := "user_updates"
-	bindingKey := "user.profile.*"
+	exchangeName := "log_messages"
+	bindingKey := "log.*"
 
-	err = ch.ExchangeDeclare(
-		exchangeName, // name
-		"topic",      // type
-		true,         // durable
-		false,
-		false,
-		false,
-		nil,
-	)
-	failOnError(err, "Error creating the exchange")
-
-	q, err := ch.QueueDeclare(
-		"",    // name - empty means a random, unique name will be assigned
-		true,  // durable
-		false, // delete when the last consumer unsubscribes
-		false,
-		false,
-		nil,
-	)
-	failOnError(err, "Error creating the queue")
-
-	err = ch.QueueBind(
-		q.Name,       // queue name
-		bindingKey,   // binding key
-		exchangeName, // exchange
-		false,
-		nil,
-	)
-	failOnError(err, "Error binding the queue")
-
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer id - empty means a random, unique id will be assigned
-		false,  // auto acknowledgement of message delivery
-		false,
-		false,
-		false,
-		nil,
-	)
-	failOnError(err, "Failed to register as a consumer")
+	msgs, err := setupQueueConsumer(ch, exchangeName, bindingKey)
+	failOnError(err, "Failed setting up queue consumer")
 
 	forever := make(chan bool)
 	go func() {
@@ -83,6 +45,52 @@ func serviceApi(rabbitHostAddress string) {
 	}()
 	fmt.Println("Service listening for events...")
 	<-forever
+}
+
+func setupQueueConsumer(ch *amqp.Channel, exchangeName string, bindingKey string) (<-chan amqp.Delivery, error) {
+	err := ch.ExchangeDeclare(
+		exchangeName, // name
+		"topic",      // type
+		true,         // durable
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	q, err := ch.QueueDeclare(
+		"",    // name - empty means a random, unique name will be assigned
+		true,  // durable
+		false, // delete when the last consumer unsubscribe
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	err = ch.QueueBind(
+		q.Name,       // queue name
+		bindingKey,   // binding key
+		exchangeName, // exchange
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer id - empty means a random, unique id will be assigned
+		false,  // auto acknowledgement of message delivery
+		false,
+		false,
+		false,
+		nil,
+	)
+	return msgs, err
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
