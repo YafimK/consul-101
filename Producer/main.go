@@ -1,8 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/hashicorp/consul/api"
+	"github.com/YafimK/consul-101/Common"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 	"time"
 )
 
-var consulDefaultAddress = "consul:8500"
+var consulDefaultAddress = "127.0.0.1:8500"
 var messageLimit = 50
 var msgCounter = 0
 
@@ -32,23 +33,24 @@ func sendMessage(targetHostname string, payload string) {
 
 	log.Printf("msg sent OK")
 }
-
+func failOnError(err error, msg string) {
+	if err != nil {
+		// Exit the program.
+		log.Fatalf(fmt.Sprintf("%s: %s", msg, err))
+	}
+}
 func main() {
+	consulAddress := flag.String("consul", consulDefaultAddress, "service bind port")
+	flag.Parse()
 	log.Println("Starting producer ...")
 	serviceKey := "service/logger"
-
-	config := api.DefaultConfig()
-	config.Address = consulDefaultAddress
-
-	client, err := api.NewClient(config)
-	if err != nil {
-		log.Fatalf("client err: %v", err)
-	}
+	client, err := Common.NewClient(*consulAddress)
+	failOnError(err, "failed connecting to consul")
 
 	timer := time.NewTicker(5 * time.Second)
 
 	for ; msgCounter <= messageLimit; msgCounter++ {
-		kv, _, err := client.KV().Get(serviceKey, nil)
+		kv, _, err := client.ConsulClient.KV().Get(serviceKey, nil)
 		if err != nil {
 			log.Fatalf("kv acquire err: %v", err)
 		}

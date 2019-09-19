@@ -43,14 +43,14 @@ func main() {
 		TTL:       ttlS,
 		LockDelay: 1 * time.Millisecond,
 	}
-	sID, _, err := consulClient.C.Session().Create(sEntry, nil)
+	sID, _, err := consulClient.ConsulClient.Session().Create(sEntry, nil)
 	if err != nil {
 		log.Fatalf("session create err: %v", err)
 	}
 
 	doneCh := make(chan struct{})
 	go func() {
-		err = consulClient.Session().RenewPeriodic(ttlS, sID, nil, doneCh)
+		err = consulClient.ConsulClient.Session().RenewPeriodic(ttlS, sID, nil, doneCh)
 		if err != nil {
 			log.Fatalf("session renew err: %v", err)
 		}
@@ -72,7 +72,7 @@ func main() {
 
 		for {
 			if !isLeader {
-				acquired, _, err := client.KV().Acquire(acquireKv, nil)
+				acquired, _, err := consulClient.ConsulClient.KV().Acquire(acquireKv, nil)
 				if err != nil {
 					log.Fatalf("kv acquire err: %v", err)
 				}
@@ -94,7 +94,7 @@ func main() {
 	<-sigCh
 	close(doneCh)
 	log.Printf("Destroying session and leaving ...")
-	_, err = client.Session().Destroy(sID, nil)
+	_, err = consulClient.ConsulClient.Session().Destroy(sID, nil)
 	if err != nil {
 		log.Fatalf("session destroy err: %v", err)
 	}
