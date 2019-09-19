@@ -104,7 +104,8 @@ func main() {
 	flag.Parse()
 
 	go serviceApi(*amqpHost)
-	err := Common.RegisterServiceWithConsul(serviceName, serviceName, *hostname, *port, consulDefaultAddress)
+	consulClient, err := Common.NewClient(consulDefaultAddress)
+	err := consulClient.RegisterService(serviceName, serviceName, *hostname, *port)
 	failOnError(err, "failed registering with consul")
 
 	http.HandleFunc("/healthcheck", healthCheck)

@@ -33,7 +33,7 @@ func serviceApi(rabbitHostAddress string) {
 	exchangeName := "log_messages"
 	bindingKey := "log.*"
 
-	msgs, err := setupQueueConsumer(ch, exchangeName, bindingKey)
+	msgs, err := setupQueueProducer(ch, exchangeName, bindingKey)
 	failOnError(err, "Failed setting up queue consumer")
 
 	forever := make(chan bool)

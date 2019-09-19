@@ -1,4 +1,4 @@
-module github.com/YafimK/consul-101/Services/MessageQueueConsumer
+module github.com/YafimK/consul-101/Services/MessageQueueProducer
 
 go 1.13
 

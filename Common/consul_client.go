@@ -2,32 +2,44 @@ package Common
 
 import (
 	"fmt"
-	consulapi "github.com/hashicorp/consul/api"
+	consul "github.com/hashicorp/consul/api"
 )
 
 type ConsulClient interface {
-	Connect(consulAddress string) (*consulapi.Client, error)
+	//Connect(consulAddress string) (*consul.Client, error)
 	RegisterService(serviceId, serviceName, hostname string, port int) error
-	GetRegisteredServices(service, tag string) ([]*consulapi.ServiceEntry, *consulapi.QueryMeta, error)
+	GetRegisteredServices(service, tag string) ([]*consul.ServiceEntry, *consul.QueryMeta, error)
 }
 
-type client struct {
-	consulClient *consulapi.Client
+type Client struct {
+	consulClient *consul.Client
 }
 
-func (c *client) Connect(consulAddress string) (*consulapi.Client, error) {
-	config := consulapi.DefaultConfig()
+func NewClient(addr string) (*Client, error) {
+	consulApiClient, err := connectConsulClient(addr)
+	if err != nil {
+		return nil, err
+	}
+	return &Client{consulApiClient}, nil
+}
+
+func connectConsulClient(consulAddress string) (*consul.Client, error) {
+	config := consul.DefaultConfig()
 	config.Address = consulAddress
-	return consulapi.NewClient(config)
+	return consul.NewClient(config)
 }
 
-func (c *client) RegisterService(serviceId, serviceName, hostname string, port int) error {
-	registration := new(consulapi.AgentServiceRegistration)
+func (c *Client) DeRegisterService(id string) error {
+	return c.consulClient.Agent().ServiceDeregister(id)
+}
+
+func (c *Client) RegisterService(serviceId, serviceName, hostname string, port int) error {
+	registration := new(consul.AgentServiceRegistration)
 	registration.ID = serviceId
 	registration.Name = serviceName
 	registration.Address = hostname
 	registration.Port = port
-	registration.Check = new(consulapi.AgentServiceCheck)
+	registration.Check = new(consul.AgentServiceCheck)
 	registration.Check.HTTP = fmt.Sprintf("http://%s:%d/healthcheck",
 		hostname, port)
 	registration.Check.Interval = "5s"
@@ -35,7 +47,7 @@ func (c *client) RegisterService(serviceId, serviceName, hostname string, port i
 	return c.consulClient.Agent().ServiceRegister(registration)
 }
 
-func (c *client) GetRegisteredServices(service, tag string) ([]*consulapi.ServiceEntry, *consulapi.QueryMeta, error) {
+func (c *Client) GetRegisteredServices(service, tag string) ([]*consul.ServiceEntry, *consul.QueryMeta, error) {
 	passingOnly := true
 	addrs, meta, err := c.consulClient.Health().Service(service, tag, passingOnly, nil)
 	if len(addrs) == 0 && err == nil {
