@@ -11,7 +11,7 @@ import (
 
 var consulDefaultAddress = "127.0.0.1:8500"
 
-const serviceName = "message_producer"
+const serviceName = "messageProducer"
 const defaultServicePort = 3002
 
 func failOnError(err error, msg string) {

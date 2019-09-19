@@ -32,7 +32,7 @@ func main() {
 	// ttl in seconds
 	ttl := 10
 	ttlS := fmt.Sprintf("%ds", ttl)
-	serviceKey := "service/logger"
+	serviceKey := "distributedLogger"
 	serviceName := "logger"
 
 	consulClient, err := Common.NewClient(*consulAddress)

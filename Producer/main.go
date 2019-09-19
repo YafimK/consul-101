@@ -43,7 +43,7 @@ func main() {
 	consulAddress := flag.String("consul", consulDefaultAddress, "service bind port")
 	flag.Parse()
 	log.Println("Starting producer ...")
-	serviceKey := "service/logger"
+	serviceKey := "logProducer"
 	client, err := Common.NewClient(*consulAddress)
 	failOnError(err, "failed connecting to consul")
 
