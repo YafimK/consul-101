@@ -12,7 +12,7 @@ type ConsulClient interface {
 }
 
 type Client struct {
-	consulClient *consul.Client
+	ConsulClient *consul.Client
 }
 
 func NewClient(addr string) (*Client, error) {
@@ -30,7 +30,7 @@ func connectConsulClient(consulAddress string) (*consul.Client, error) {
 }
 
 func (c *Client) DeRegisterService(id string) error {
-	return c.consulClient.Agent().ServiceDeregister(id)
+	return c.ConsulClient.Agent().ServiceDeregister(id)
 }
 
 func (c *Client) RegisterService(serviceId, serviceName, hostname string, port int) error {
@@ -44,12 +44,12 @@ func (c *Client) RegisterService(serviceId, serviceName, hostname string, port i
 		hostname, port)
 	registration.Check.Interval = "5s"
 	registration.Check.Timeout = "3s"
-	return c.consulClient.Agent().ServiceRegister(registration)
+	return c.ConsulClient.Agent().ServiceRegister(registration)
 }
 
 func (c *Client) GetRegisteredServices(service, tag string) ([]*consul.ServiceEntry, *consul.QueryMeta, error) {
 	passingOnly := true
-	addrs, meta, err := c.consulClient.Health().Service(service, tag, passingOnly, nil)
+	addrs, meta, err := c.ConsulClient.Health().Service(service, tag, passingOnly, nil)
 	if len(addrs) == 0 && err == nil {
 		return nil, nil, fmt.Errorf("service ( %s ) was not found", service)
 	}

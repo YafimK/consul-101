@@ -6,6 +6,8 @@ github.com/YafimK/consul-101/Common v0.0.0-20190911110935-fe477d87bb2a h1:1THVtu
 github.com/YafimK/consul-101/Common v0.0.0-20190911110935-fe477d87bb2a/go.mod h1:7oNA0jJXc4gaQIWhmCBdMYc8aNyssVUp4b9ouRs1MUY=
 github.com/YafimK/consul-101/Common v0.0.0-20190919063901-ae5cbc6d126b h1:cTCdhGUcrTisjfYVYPl7rFnmEL3Jy4k+Nx/bhx1/Mi4=
 github.com/YafimK/consul-101/Common v0.0.0-20190919063901-ae5cbc6d126b/go.mod h1:8I3eQWcRR0CxMHuwgxwbeSOZeklYijHFGHkaTA5uxic=
+github.com/YafimK/consul-101/Common v0.0.0-20190919100844-13eac264d4b7 h1:UH/lvluWJ75jJTpl6tFdu4cQr3G6i++YtpX+uaQ+cUU=
+github.com/YafimK/consul-101/Common v0.0.0-20190919100844-13eac264d4b7/go.mod h1:8I3eQWcRR0CxMHuwgxwbeSOZeklYijHFGHkaTA5uxic=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da h1:8GUt8eRujhVEGZFFEjBj46YV4rDjvGrNxb0KMWYkL2I=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=

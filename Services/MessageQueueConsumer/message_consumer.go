@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-var consulDefaultAddress = "consul:8500"
+var consulDefaultAddress = "127.0.0.1:8500"
 
 const serviceName = "message_consumer"
 const defaultServicePort = 3001
@@ -101,13 +101,14 @@ func main() {
 	amqpHost := flag.String("amqp", "amqp://guest:guest@0.0.0.0:5672/", "enter amqp server")
 	hostname := flag.String("host", "0.0.0.0", "service bind hostname")
 	port := flag.Int("port", defaultServicePort, "service bind port")
+	consulAddress := flag.String("consul", consulDefaultAddress, "service bind port")
 	flag.Parse()
 
 	go serviceApi(*amqpHost)
-	consulClient, err := Common.NewClient(consulDefaultAddress)
-	err := consulClient.RegisterService(serviceName, serviceName, *hostname, *port)
+	consulClient, err := Common.NewClient(*consulAddress)
+	failOnError(err, "failed connecting to consul")
+	err = consulClient.RegisterService(serviceName, serviceName, *hostname, *port)
 	failOnError(err, "failed registering with consul")
-
 	http.HandleFunc("/healthcheck", healthCheck)
 	err = http.ListenAndServe(fmt.Sprintf("%v:%v", *hostname, *port), nil)
 	failOnError(err, "error during listening for incoming connections:")

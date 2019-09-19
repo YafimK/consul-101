@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"github.com/YafimK/consul-101/Common"
 	"github.com/hashicorp/consul/api"
 	"io/ioutil"
 	"log"
@@ -12,10 +14,19 @@ import (
 	"time"
 )
 
-var consulDefaultAddress = "consul:8500"
+var consulDefaultAddress = "0.0.0.0:8500"
 var isLeader = false
 
+func failOnError(err error, msg string) {
+	if err != nil {
+		// Exit the program.
+		log.Fatalf(fmt.Sprintf("%s: %s", msg, err))
+	}
+}
 func main() {
+	consulAddress := flag.String("consul", consulDefaultAddress, "service bind port")
+	flag.Parse()
+
 	go startAPI()
 
 	// ttl in seconds
@@ -24,26 +35,22 @@ func main() {
 	serviceKey := "service/logger"
 	serviceName := "logger"
 
-	config := api.DefaultConfig()
-	config.Address = consulDefaultAddress
-	client, err := api.NewClient(config)
-	if err != nil {
-		log.Fatalf("client err: %v", err)
-	}
+	consulClient, err := Common.NewClient(*consulAddress)
+	failOnError(err, "failed connecting to consul")
 
 	sEntry := &api.SessionEntry{
 		Name:      serviceName,
 		TTL:       ttlS,
 		LockDelay: 1 * time.Millisecond,
 	}
-	sID, _, err := client.Session().Create(sEntry, nil)
+	sID, _, err := consulClient.C.Session().Create(sEntry, nil)
 	if err != nil {
 		log.Fatalf("session create err: %v", err)
 	}
 
 	doneCh := make(chan struct{})
 	go func() {
-		err = client.Session().RenewPeriodic(ttlS, sID, nil, doneCh)
+		err = consulClient.Session().RenewPeriodic(ttlS, sID, nil, doneCh)
 		if err != nil {
 			log.Fatalf("session renew err: %v", err)
 		}
