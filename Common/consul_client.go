@@ -3,6 +3,8 @@ package Common
 import (
 	"fmt"
 	consul "github.com/hashicorp/consul/api"
+	"log"
+	"net"
 )
 
 type ConsulClient interface {
@@ -37,13 +39,18 @@ func (c *Client) RegisterService(serviceId, serviceName, hostname string, port i
 	registration := new(consul.AgentServiceRegistration)
 	registration.ID = serviceId
 	registration.Name = serviceName
-	registration.Address = hostname
+	ip, err := getIpAddress()
+	if err != nil {
+		return err
+	}
+	registration.Address = ip
 	registration.Port = port
 	registration.Check = new(consul.AgentServiceCheck)
 	registration.Check.HTTP = fmt.Sprintf("http://%s:%d/healthcheck",
 		hostname, port)
 	registration.Check.Interval = "5s"
 	registration.Check.Timeout = "3s"
+	log.Printf("Registering service [%v], under host [%v], with ip: [%v]\n", serviceName, hostname, ip)
 	return c.ConsulClient.Agent().ServiceRegister(registration)
 }
 
@@ -57,4 +64,40 @@ func (c *Client) GetRegisteredServices(service, tag string) ([]*consul.ServiceEn
 		return nil, nil, err
 	}
 	return addrs, meta, nil
+}
+
+func getIpAddress() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagLoopback != 0 || iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", err
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			if ip == nil {
+				continue // not an ipv4 address
+			}
+			return ip.String(), nil
+		}
+	}
+	return "", fmt.Errorf("didn't find internal ip address" +
+		"" +
+		"")
 }
